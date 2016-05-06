@@ -23,7 +23,7 @@ function Service(app, module, invoke) {
 
 			    this.factory = function($injector) {
 			      function makeInjectable(fn) {
-			        if (typeof fn === 'function' || Array.isArray(fn)) {
+			        if (angular.isFunction(fn) || angular.isArray(fn)) {
 			          return function(tElement, tAttrs) {
 			            return app.$injector.invoke(fn, this, {
 			              $element: tElement,
@@ -36,7 +36,7 @@ function Service(app, module, invoke) {
 			      }
 
 			      var template = (!options.template && !options.templateUrl ? '' : options.template);
-			      return {
+			      var ddo = {
 			        controller: controller,
 			        controllerAs: options.controllerAs || '$ctrl',
 			        template: makeInjectable(template),
@@ -47,7 +47,16 @@ function Service(app, module, invoke) {
 			        restrict: 'E',
 			        require: options.require
 			      };
+
+			      // Copy annotations (starting with $) over to the DDO
+			      angular.forEach(options, function (val, key) {
+			        if (key.charAt(0) === '$') ddo[key] = val;
+			      });
+
+			      return ddo;
 			    }
+
+			    this.factory.$inject = ['$injector'];
 			  }
 
 			  dir = app.$injector.invoke(this.factory);
