@@ -17,6 +17,36 @@ function Service(app, module, invoke) {
 			var dir;
 
 			try {
+					if (this.type === "component") {
+						var options = this.factory;
+						var controller = options.controller || function () { };
+
+					  this.factory = function($injector) {
+					    function makeInjectable(fn) {
+					      if (typeof fn === 'function' || Array.isArray(fn)) {
+					        return function(tElement, tAttrs) {
+					          return app.$injector.invoke(fn, this, {$element: tElement, $attrs: tAttrs});
+					        };
+					      } else {
+					        return fn;
+					      }
+					    }
+
+					    var template = (!options.template && !options.templateUrl ? '' : options.template);
+					    return {
+					      controller: controller,
+					      controllerAs: options.controllerAs || '$ctrl',
+					      template: makeInjectable(template),
+					      templateUrl: makeInjectable(options.templateUrl),
+					      transclude: options.transclude,
+					      scope: {},
+					      bindToController: options.bindings || {},
+					      restrict: 'E',
+					      require: options.require
+					    };
+					  }
+					}
+
 				dir = app.$injector.invoke(this.factory);
 			} catch(err) {
 				return console.warn(
